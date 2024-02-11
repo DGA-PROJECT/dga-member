@@ -1,0 +1,85 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.gitignore'
+      - '.dockerignore'
+      - 'node_modules'
+#      - 'README.md'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
+    steps:
+      
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.14.2
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set var
+        id: set-var
+        run: |
+          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
+          echo ::set-output name=ECR_REPOSITORY::dga-member
+          echo ::set-output name=IMAGE_TAG::${{ github.run_number }}
+      
+      - uses: actions/checkout@v4
+ 
+      - name: Docker image Build
+        id: build-image
+        run: |
+          docker build \
+            -f Dockerfile \
+            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG}} .
+
+      - name: Docker image Push
+        id: push-image
+        run: |
+          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}
+      
+      - name: Checkout Other Repository
+        uses: actions/checkout@v2
+        with:
+          repository: DGA-PROJECT/dga-deploy # 깃허브 배포용 레포로 지정 닉네임/레포이름
+          ref: main  # branch
+          token: ${{ secrets.aws_token }} #  secrets에 깃허브 토큰도 넣어야됨
+      - name: k8s manifest update
+        run: |
+          sed -i "s@ \
+          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:.*@ \
+          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.yml 
+
+# test 용으로 txt 파일 수정하게 세팅했음. 깃허브로 세팅
+      - name: Commit and Push
+        run: |
+          git config user.email "ths8976@naver.com"
+          git config user.name "BrokeNose"
+          git add member/deployment.yml
+          git commit -m "Update image tag member/deployment.yml"
+          git push origin main
+
