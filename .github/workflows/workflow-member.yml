@@ -69,12 +69,12 @@ jobs:
         run: |
           docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}
       
-      - name: Checkout Other Repository
-        uses: actions/checkout@v2
-        with:
-          repository: DGA-PROJECT/dga-deploy # 깃허브 배포용 레포로 지정 닉네임/레포이름
-          ref: main  # branch
-          token: ${{ secrets.aws_token }} #  secrets에 깃허브 토큰도 넣어야됨
+      #- name: Checkout Other Repository
+       # uses: actions/checkout@v2
+        #with:
+         # repository: DGA-PROJECT/dga-deploy # 깃허브 배포용 레포로 지정 닉네임/레포이름
+         # ref: main  # branch
+         # token: ${{ secrets.aws_token }} #  secrets에 깃허브 토큰도 넣어야됨
       - name: k8s manifest update
         run: |
           sed -i "s@ \
