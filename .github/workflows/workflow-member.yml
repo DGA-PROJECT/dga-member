@@ -12,6 +12,10 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
+    # Github Action Secret 에 정의한 환경변수
     outputs:
       IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
     steps:
@@ -21,8 +25,8 @@ jobs:
         with:
           node-version: 16
           cache: npm
-          cache-dependency-path: back/package.json
-      - run: npm install
+#cache-dependency-path: ./back
+      - run: npm ci
       - run: npm test
       - run: npm run build
       
