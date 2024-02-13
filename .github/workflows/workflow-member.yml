@@ -12,9 +12,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-   # defaults:
-     # run:
-       # working-directory: ./back
+    defaults:
+      run:
+        working-directory: ./back
     # Github Action Secret 에 정의한 환경변수
     outputs:
       IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
