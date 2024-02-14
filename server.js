@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+const { Pool } = require("pg");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -9,8 +10,30 @@ dotenv.config();
 const port = 3000;
 
 app.use(cors());
-app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// db secret
+const mongDbSecret = {
+  user: process.env.MONGO_USER,
+  host: process.env.MONGO_HOST,
+  database: process.env.MONGO_DATABASE,
+  password: process.env.MONGO_PASSWORD,
+  port: process.env.MONGO_PORT,
+};
+
+const uri = `mongodb://${mongDbSecret.user}:${mongDbSecret.password}@${mongDbSecret.host}:${mongDbSecret.port}`;
+const dbName = mongDbSecret.database;
+
+const pool = new Pool({
+  user: process.env.POSTGRE_USER,
+  host: process.env.POSTGRE_HOST,
+  database: process.env.POSTGRE_DATABASE,
+  password: process.env.POSTGRE_PASSWORD,
+  port: process.env.POSTGRE_PORT, // PostgreSQL 포트 번호
+  max: 20, // Connection Pool의 최대 연결 수
+  idleTimeoutMillis: 30000, // 연결이 유휴 상태로 유지되는 시간 (밀리초)
+});
 
 const testDb = [];
 // const testDb = [{ email: "ycsluvmuzzi@gmail.com" }];
@@ -21,18 +44,58 @@ const testDb = [];
 
 // 이메일 체크 함수
 
-function checkEmailExists(dbArray, targetEmail) {
-  return dbArray.some((obj) => obj.email === targetEmail);
-}
+const checkEmailExists = async (email) => {
+  try {
+    const client = await pool.connect();
 
-function checkNicknameExists(dbArray, targetNickname) {
-  return dbArray.some((obj) => obj.nickname === targetNickname);
-}
-//.env테스트
-console.log(process.env.test);
+    // PostgreSQL 쿼리문: 주어진 이메일로 유저가 존재하는지 확인
+
+    const result = await client.query(
+      `SELECT * FROM users WHERE email = '${email}'`
+    );
+
+    console.log(result);
+
+    // const emailExists = result.rows[0].email_exists;
+
+    // 연결 해제
+    client.release();
+
+    if (result.rows.length === 0) {
+      return false;
+    } else {
+      return result.rows[0];
+    }
+  } catch (error) {
+    console.error("Error checking email existence:", error);
+    throw error;
+  }
+};
+
+const checkNicknameExists = async (nickname) => {
+  try {
+    const client = await pool.connect();
+
+    // PostgreSQL 쿼리문: 주어진 닉네임으로 유저가 존재하는지 확인
+    const result = await client.query(
+      "SELECT EXISTS (SELECT 1 FROM users WHERE nickname = $1) AS nickname_exists",
+      [nickname]
+    );
+
+    const nicknameExists = result.rows[0].nickname_exists;
+
+    // 연결 해제
+    client.release();
+
+    return nicknameExists;
+  } catch (error) {
+    console.error("Error checking nickname existence:", error);
+    throw error;
+  }
+};
 
 //axios테스트
-app.get("/testCheckUser", (req, res, next) => {
+app.get("/testget", (req, res, next) => {
   res.json(JSON.stringify(testDb));
 });
 
@@ -42,7 +105,7 @@ app.post("/postest", (req, res) => {
   res.json(req.body);
 });
 
-app.post("/checknewbie", (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const idToken = req.get("Authorization");
     const accessToken = req.body.accessToken;
@@ -59,11 +122,13 @@ app.post("/checknewbie", (req, res) => {
     // 1. 유저가 이미 있으면 이미 가입된 유저라는 응답
     // 2. 없으면 없는 유저라는 응답과함꼐 이메일 주소 줌.
 
-    if (checkEmailExists(testDb, userEmail)) {
+    const result = await checkEmailExists(userEmail);
+
+    if (result) {
       // 이미 유저가 존재하는 경우
       res.json(
         JSON.stringify({
-          email: userEmail,
+          nickname: result.nickname,
         })
       );
     } else {
@@ -81,7 +146,7 @@ app.post("/checknewbie", (req, res) => {
   }
 });
 
-app.post("/checkusednickname", (req, res) => {
+app.post("/nickname", async (req, res) => {
   try {
     const idToken = req.get("Authorization");
     const accessToken = req.body.accessToken;
@@ -94,7 +159,7 @@ app.post("/checkusednickname", (req, res) => {
     const userEmail = idTokenPayload.email;
 
     console.log(nickname);
-    if (checkNicknameExists(testDb, nickname)) {
+    if (await checkNicknameExists(nickname)) {
       // 이미 사용중인 닉네임인 경우
       let answer = {
         isExist: true,
@@ -116,7 +181,7 @@ app.post("/checkusednickname", (req, res) => {
   }
 });
 
-app.post("/signup", (req, res) => {
+app.post("/newbie", async (req, res) => {
   try {
     const idToken = req.get("Authorization");
     const accessToken = req.body.accessToken;
@@ -136,23 +201,38 @@ app.post("/signup", (req, res) => {
     // 1. 유저가 이미 있으면 이미 가입된 유저라는 응답
     // 2. 없으면 없는 유저라는 응답과함꼐 이메일 주소 줌.
 
-    if (checkEmailExists(testDb, userEmail)) {
+    if (await checkEmailExists(userEmail)) {
       // 이미 유저가 존재하는 경우
       res.status(400).json(JSON.stringify({ error: "user is already exist" }));
-    } else if (checkNicknameExists(testDb, nickname)) {
+    } else if (await checkNicknameExists(nickname)) {
       res
         .status(400)
         .json(JSON.stringify({ error: "nickname is already exist" }));
     } else {
-      testDb.push({
-        email: userEmail,
+      //------------------ 인서트
+      const client = await pool.connect();
+      const userValues = {
         nickname: nickname,
-        birthdate: birthdate,
-      });
+        email: userEmail,
+        birth_date: birthdate,
+        grade: "economy",
+        profile_image_link: null,
+      };
 
-      res
-        .status(200)
-        .json(JSON.stringify({ message: `welcome Mr. ${nickname}` }));
+      const queryString = `
+        INSERT INTO users (nickname, email, birth_date, grade, profile_image_link)
+        VALUES ($1, $2, $3, $4, $5)
+      `;
+
+      const values = Object.values(userValues);
+
+      const result = await pool.query(queryString, values);
+      if (result.rowCount > 0) {
+        console.log("Sample user inserted successfully!");
+        res
+          .status(200)
+          .json(JSON.stringify({ message: `welcome ${nickname}` }));
+      }
     }
   } catch (err) {
     res.status(500).json(JSON.stringify({ error: err.message }));
