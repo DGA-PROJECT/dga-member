@@ -9,14 +9,7 @@ const app = express();
 dotenv.config();
 const port = 3000;
 
-// app.use(cors());
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://www.daddygo.vacations");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
+app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -43,7 +36,6 @@ const pool = new Pool({
   idleTimeoutMillis: 30000, // 연결이 유휴 상태로 유지되는 시간 (밀리초)
 });
 
-const testDb = [];
 // const testDb = [{ email: "ycsluvmuzzi@gmail.com" }];
 
 /////////////////------------------------
@@ -104,13 +96,31 @@ const checkNicknameExists = async (nickname) => {
 
 //axios테스트
 app.get("/testget", (req, res, next) => {
-  res.json(JSON.stringify(testDb));
+  try {
+    res.json(JSON.stringify("get 성공이야"));
+  } catch (error) {
+    console.error("에러 발생:", error);
+
+    // 클라이언트에게 에러 응답 보내기
+    res.status(500).json({ error: "서버 내부 오류 발생" });
+  }
 });
 
 app.post("/postest", (req, res) => {
-  console.log(req.body);
-  req.body.message = "성공했어!";
-  res.json(req.body);
+  try {
+    console.log(req.body);
+
+    // 예외 발생 시점 예시
+    // throw new Error("에러 발생!");
+
+    req.body.message = "성공했어!";
+    res.json(req.body);
+  } catch (error) {
+    console.error("에러 발생:", error);
+
+    // 클라이언트에게 에러 응답 보내기
+    res.status(500).json({ error: "서버 내부 오류 발생" });
+  }
 });
 
 app.post("/login", async (req, res) => {
