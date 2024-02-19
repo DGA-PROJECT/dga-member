@@ -36,12 +36,6 @@ const pool = new Pool({
   idleTimeoutMillis: 30000, // 연결이 유휴 상태로 유지되는 시간 (밀리초)
 });
 
-// const testDb = [{ email: "ycsluvmuzzi@gmail.com" }];
-
-/////////////////------------------------
-
-/////////////////------------------------
-
 // 이메일 체크 함수
 
 const checkEmailExists = async (email) => {
@@ -95,9 +89,10 @@ const checkNicknameExists = async (nickname) => {
 };
 
 //axios테스트
-app.get("/testget", (req, res, next) => {
+app.get("/users/testget", (req, res, next) => {
   try {
     res.json(JSON.stringify("get 성공이야"));
+    console.log("test get 왔어");
   } catch (error) {
     console.error("에러 발생:", error);
 
@@ -106,7 +101,7 @@ app.get("/testget", (req, res, next) => {
   }
 });
 
-app.post("/postest", (req, res) => {
+app.post("/users/postest", (req, res) => {
   try {
     console.log(req.body);
 
@@ -114,7 +109,7 @@ app.post("/postest", (req, res) => {
     // throw new Error("에러 발생!");
 
     req.body.message = "성공했어!";
-    res.json(req.body);
+    res.json(JSON.stringify("멤버 연결됐엉"));
   } catch (error) {
     console.error("에러 발생:", error);
 
@@ -123,10 +118,13 @@ app.post("/postest", (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("/users/login", async (req, res) => {
   try {
-    const idToken = req.get("Authorization");
+    const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
+
+    console.log(idToken);
+    console.log(accessToken);
 
     const idTokenObj = tokenFunction.getPureTokenValues(idToken);
     const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
@@ -146,7 +144,8 @@ app.post("/login", async (req, res) => {
       // 이미 유저가 존재하는 경우
       res.json(
         JSON.stringify({
-          nickname: result.nickname,
+          newbie: false,
+          result: result,
         })
       );
     } else {
@@ -164,9 +163,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/nickname", async (req, res) => {
+app.post("/users/nickname", async (req, res) => {
   try {
-    const idToken = req.get("Authorization");
+    const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
     const nickname = req.body.nickname;
 
@@ -199,9 +198,9 @@ app.post("/nickname", async (req, res) => {
   }
 });
 
-app.post("/newbie", async (req, res) => {
+app.post("/users/newbie", async (req, res) => {
   try {
-    const idToken = req.get("Authorization");
+    const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
 
     const idTokenObj = tokenFunction.getPureTokenValues(idToken);
@@ -251,6 +250,7 @@ app.post("/newbie", async (req, res) => {
           .status(200)
           .json(JSON.stringify({ message: `welcome ${nickname}` }));
       }
+      client.release();
     }
   } catch (err) {
     res.status(500).json(JSON.stringify({ error: err.message }));
