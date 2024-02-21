@@ -21,15 +21,15 @@ ENV POSTGRE_USER \
     MONGO_PASSWORD\
     MONGO_PORT
 
-ENV POSTGRE_USER=${{ secrets.POSTGRE_USER_1 }} \
-    POSTGRE_HOST=${{ secrets.POSTGRE_HOST_1 }} \
-    POSTGRE_DATABASE=${{ secrets.POSTGRE_DATABASE_1 }} \
-    POSTGRE_PASSWORD=${{ secrets.POSTGRE_PASSWORD_1 }} \
-    POSTGRE_PORT=${{ secrets.POSTGRE_PORT_1 }} \
-    MONGO_USER=${{ secrets.MONGO_USER_1 }} \
-    MONGO_HOST=${{ secrets.MONGO_HOST_1 }} \
-    MONGO_DATABASE=${{ secrets.MONGO_DATABASE_1 }} \
-    MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD_1 }} \
-    MONGO_PORT=${{ secrets.MONGO_PORT_1 }} 
+ENV POSTGRE_USER=${{ POSTGRE_USER_1 }} \
+    POSTGRE_HOST=${{ POSTGRE_HOST_1 }} \
+    POSTGRE_DATABASE=${{ POSTGRE_DATABASE_1 }} \
+    POSTGRE_PASSWORD=${{ POSTGRE_PASSWORD_1 }} \
+    POSTGRE_PORT=${{ POSTGRE_PORT_1 }} \
+    MONGO_USER=${{ MONGO_USER_1 }} \
+    MONGO_HOST=${{ MONGO_HOST_1 }} \
+    MONGO_DATABASE=${{ MONGO_DATABASE_1 }} \
+    MONGO_PASSWORD=${{ MONGO_PASSWORD_1 }} \
+    MONGO_PORT=${{ MONGO_PORT_1 }} 
 #컨테이너가 실행될 때 1번만 수행되는 {시작 명령어} 자리에 들어갈 커맨드
 CMD ["node","server.js"]
