@@ -68,16 +68,16 @@ jobs:
         run: |
           docker build \
             -f Dockerfile \
-            --build-arg POSTGRE_USER=ENV.POSTGRE_USER \
-            --build-arg POSTGRE_HOST=ENV.POSTGRE_HOST \
-            --build-arg POSTGRE_DATABASE=ENV.POSTGRE_DATABASE \
-            --build-arg POSTGRE_PASSWORD=ENV.POSTGRE_PASSWORD \
-            --build-arg POSTGRE_PORT=ENV.POSTGRE_PORT \
-            --build-arg MONGO_USER=ENV.MONGO_USER \
-            --build-arg MONGO_HOST=ENV.MONGO_HOST \
-            --build-arg MONGO_DATABASE=ENV.MONGO_DATABASE \
-            --build-arg MONGO_PASSWORD=ENV.MONGO_PASSWORD \
-            --build-arg MONGO_PORT=ENV.MONGO_PORT \
+            --build-arg POSTGRE_USER=${{ secrets.POSTGRE_USER_1 }} \
+            --build-arg POSTGRE_HOST=${{ secrets.POSTGRE_HOST_1 }} \
+            --build-arg POSTGRE_DATABASE=${{ secrets.POSTGRE_DATABASE_1 }} \
+            --build-arg POSTGRE_PASSWORD=${{ secrets.POSTGRE_PASSWORD_1 }} \
+            --build-arg POSTGRE_PORT=${{ secrets.POSTGRE_PORT_1 }} \
+            --build-arg MONGO_USER=${{ secrets.MONGO_USER_1 }} \
+            --build-arg MONGO_HOST=${{ secrets.MONGO_HOST_1 }} \
+            --build-arg MONGO_DATABASE=${{ secrets.MONGO_DATABASE_1 }} \
+            --build-arg MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD_1 }} \
+            --build-arg MONGO_PORT=${{ secrets.MONGO_PORT_1 }} \
             -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG}} .
 
       - name: Docker image Push
