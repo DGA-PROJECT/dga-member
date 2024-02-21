@@ -10,7 +10,7 @@ RUN npm install
 # COPY를 두 부분으로 구분해둔 이유: 효율적인 재빌드 목적
 COPY ./ ./
 
-ENV POSTGRE_USER \
+ARG POSTGRE_USER \
     POSTGRE_HOST \
     POSTGRE_DATABASE \
     POSTGRE_PASSWORD \
