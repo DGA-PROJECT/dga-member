@@ -257,7 +257,7 @@ app.post("/users/newbie", async (req, res) => {
   }
 });
 
-app.get("/dbtest", async (req, res, next) => {
+app.get("/users/dbtest", async (req, res, next) => {
   try {
     if (await checkNicknameExists("바보온달")) {
       console.log("바보");
@@ -276,7 +276,7 @@ app.get("/dbtest", async (req, res, next) => {
   }
 });
 
-app.get("/envtest", async (req, res, next) => {
+app.get("/users/envtest", async (req, res, next) => {
   try {
     if (process.env.POSTGRE_DATABASE == "mydatabase") {
       res.json(JSON.stringify("env읽을 수 있어"));
