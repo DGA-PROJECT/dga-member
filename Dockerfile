@@ -9,6 +9,18 @@ RUN npm install
 # package.json 외의 다른 파일들도 복사 (index.js가 없으면 CMD 명령어 수행 불가함)
 # COPY를 두 부분으로 구분해둔 이유: 효율적인 재빌드 목적
 COPY ./ ./
+
+ENV POSTGRE_USER \
+    POSTGRE_HOST \
+    POSTGRE_DATABASE \
+    POSTGRE_PASSWORD \
+    POSTGRE_PORT \
+    MONGO_USER \
+    MONGO_HOST \
+    MONGO_DATABASE \
+    MONGO_PASSWORD\
+    MONGO_PORT
+
 ENV POSTGRE_USER=${{ secrets.POSTGRE_USER_1 }} \
     POSTGRE_HOST=${{ secrets.POSTGRE_HOST_1 }} \
     POSTGRE_DATABASE=${{ secrets.POSTGRE_DATABASE_1 }} \
