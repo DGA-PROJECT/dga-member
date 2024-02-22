@@ -48,7 +48,7 @@ const checkEmailExists = async (email) => {
       `SELECT * FROM users WHERE email = '${email}'`
     );
 
-    console.log(result);
+    // console.log(result);
 
     // const emailExists = result.rows[0].email_exists;
 
@@ -89,7 +89,7 @@ const checkNicknameExists = async (nickname) => {
 };
 
 //axios테스트
-app.get("/users/testget", (req, res, next) => {
+app.get("/testget", (req, res, next) => {
   try {
     res.json(JSON.stringify("get 성공이야"));
     console.log("test get 왔어");
@@ -101,7 +101,7 @@ app.get("/users/testget", (req, res, next) => {
   }
 });
 
-app.post("/users/postest", (req, res) => {
+app.post("/postest", (req, res) => {
   try {
     console.log(req.body);
 
@@ -118,7 +118,7 @@ app.post("/users/postest", (req, res) => {
   }
 });
 
-app.post("/users/login", async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
@@ -139,6 +139,8 @@ app.post("/users/login", async (req, res) => {
     // 2. 없으면 없는 유저라는 응답과함꼐 이메일 주소 줌.
 
     const result = await checkEmailExists(userEmail);
+
+    console.log(result);
 
     if (result) {
       // 이미 유저가 존재하는 경우
@@ -163,7 +165,7 @@ app.post("/users/login", async (req, res) => {
   }
 });
 
-app.post("/users/nickname", async (req, res) => {
+app.post("/nickname", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
@@ -198,7 +200,7 @@ app.post("/users/nickname", async (req, res) => {
   }
 });
 
-app.post("/users/newbie", async (req, res) => {
+app.post("/newbie", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
