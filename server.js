@@ -77,7 +77,7 @@ const checkNicknameExists = async (nickname) => {
     );
 
     const nicknameExists = result.rows[0].nickname_exists;
-
+    console.log(nicknameExists);
     // 연결 해제
     client.release();
 
@@ -254,6 +254,38 @@ app.post("/newbie", async (req, res) => {
       }
       client.release();
     }
+  } catch (err) {
+    res.status(500).json(JSON.stringify({ error: err.message }));
+  }
+});
+
+app.get("/users/dbtest", async (req, res, next) => {
+  try {
+    if (await checkNicknameExists("바보온달")) {
+      console.log("바보");
+      // 이미 사용중인 닉네임인 경우
+      let answer = "db 연결됐어1.";
+      res.json(JSON.stringify(answer));
+    } else {
+      // 가능한경우
+      let answer = "db 연결됐어2";
+      res.json(JSON.stringify(answer));
+    }
+
+    //여기까진 test db array로 테스트한거임
+  } catch (err) {
+    res.status(500).json(JSON.stringify({ error: err.message }));
+  }
+});
+
+app.get("/users/envtest", async (req, res, next) => {
+  try {
+    if (process.env.POSTGRE_DATABASE == "mydatabase") {
+      res.json(JSON.stringify("env읽을 수 있어"));
+    } else {
+      res.json(JSON.stringify("env못읽어"));
+    }
+    process.env.POSTGRE_DATABASE;
   } catch (err) {
     res.status(500).json(JSON.stringify({ error: err.message }));
   }

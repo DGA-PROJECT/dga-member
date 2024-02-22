@@ -9,5 +9,27 @@ RUN npm install
 # package.json 외의 다른 파일들도 복사 (index.js가 없으면 CMD 명령어 수행 불가함)
 # COPY를 두 부분으로 구분해둔 이유: 효율적인 재빌드 목적
 COPY ./ ./
+
+ARG POSTGRE_USER \
+    POSTGRE_HOST \
+    POSTGRE_DATABASE \
+    POSTGRE_PASSWORD \
+    POSTGRE_PORT \
+    MONGO_USER \
+    MONGO_HOST \
+    MONGO_DATABASE \
+    MONGO_PASSWORD\
+    MONGO_PORT
+
+ENV POSTGRE_USER=${POSTGRE_USER} \
+    POSTGRE_HOST=${POSTGRE_HOST} \
+    POSTGRE_DATABASE=${POSTGRE_DATABASE} \
+    POSTGRE_PASSWORD=${POSTGRE_PASSWORD} \
+    POSTGRE_PORT=${POSTGRE_PORT} \
+    MONGO_USER=${MONGO_USER} \
+    MONGO_HOST=${MONGO_HOST} \
+    MONGO_DATABASE=${MONGO_DATABASE} \
+    MONGO_PASSWORD=${MONGO_PASSWORD} \
+    MONGO_PORT=${MONGO_PORT} 
 #컨테이너가 실행될 때 1번만 수행되는 {시작 명령어} 자리에 들어갈 커맨드
 CMD ["node","server.js"]
