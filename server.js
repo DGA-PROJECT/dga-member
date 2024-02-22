@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const tokenFunction = require("./parsingToken.js");
+const e = require("express");
 
 const app = express();
 dotenv.config();
@@ -35,6 +36,16 @@ const pool = new Pool({
   max: 20, // Connection Pool의 최대 연결 수
   idleTimeoutMillis: 30000, // 연결이 유휴 상태로 유지되는 시간 (밀리초)
 });
+
+// 환경변수 url 파싱
+
+const checkEnvURL = () => {
+  if (process.env.NODE_ENV == "development") {
+    return "/users/";
+  } else {
+    return "";
+  }
+};
 
 // 이메일 체크 함수
 
@@ -89,7 +100,7 @@ const checkNicknameExists = async (nickname) => {
 };
 
 //axios테스트
-app.get("/testget", (req, res, next) => {
+app.get(checkEnvURL() + "/testget", (req, res, next) => {
   try {
     res.json(JSON.stringify("get 성공이야"));
     console.log("test get 왔어");
@@ -101,7 +112,7 @@ app.get("/testget", (req, res, next) => {
   }
 });
 
-app.post("/postest", (req, res) => {
+app.post(checkEnvURL() + "/postest", (req, res) => {
   try {
     console.log(req.body);
 
@@ -118,7 +129,7 @@ app.post("/postest", (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post(checkEnvURL() + "/login", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
@@ -165,7 +176,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/nickname", async (req, res) => {
+app.post(checkEnvURL() + "/nickname", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
@@ -200,7 +211,7 @@ app.post("/nickname", async (req, res) => {
   }
 });
 
-app.post("/newbie", async (req, res) => {
+app.post(checkEnvURL() + "/newbie", async (req, res) => {
   try {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
@@ -259,7 +270,7 @@ app.post("/newbie", async (req, res) => {
   }
 });
 
-app.get("/users/dbtest", async (req, res, next) => {
+app.get(checkEnvURL() + "/users/dbtest", async (req, res, next) => {
   try {
     if (await checkNicknameExists("바보온달")) {
       console.log("바보");
@@ -278,10 +289,10 @@ app.get("/users/dbtest", async (req, res, next) => {
   }
 });
 
-app.get("/users/envtest", async (req, res, next) => {
+app.get(checkEnvURL() + "/users/envtest", async (req, res, next) => {
   try {
     if (process.env.POSTGRE_DATABASE == "mydatabase") {
-      res.json(JSON.stringify("env읽을 수 있어"));
+      res.json(JSON.stringify("env읽을 수 있어 앙"));
     } else {
       res.json(JSON.stringify("env못읽어"));
     }
