@@ -41,9 +41,9 @@ const pool = new Pool({
 
 const checkEnvURL = () => {
   if (process.env.NODE_ENV == "development") {
-    return "/users/";
-  } else {
     return "";
+  } else {
+    return "/users";
   }
 };
 
@@ -270,10 +270,9 @@ app.post(checkEnvURL() + "/newbie", async (req, res) => {
   }
 });
 
-app.get(checkEnvURL() + "/users/dbtest", async (req, res, next) => {
+app.get(checkEnvURL() + "/dbtest", async (req, res, next) => {
   try {
     if (await checkNicknameExists("바보온달")) {
-      console.log("바보");
       // 이미 사용중인 닉네임인 경우
       let answer = "db 연결됐어1.";
       res.json(JSON.stringify(answer));
@@ -289,7 +288,7 @@ app.get(checkEnvURL() + "/users/dbtest", async (req, res, next) => {
   }
 });
 
-app.get(checkEnvURL() + "/users/envtest", async (req, res, next) => {
+app.get(checkEnvURL() + "/envtest", async (req, res, next) => {
   try {
     if (process.env.POSTGRE_DATABASE == "mydatabase") {
       res.json(JSON.stringify("env읽을 수 있어 앙"));
