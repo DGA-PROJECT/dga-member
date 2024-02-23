@@ -118,47 +118,50 @@ const checkUserExists = async (userId, nickname, email) => {
 
 app.post(checkEnvURL() + "/", async (req, res) => {
   const idToken = req.body.idToken;
-
   const accessToken = req.body.accessToken;
   const reqNickname = req.body.nickname;
   const reqEmail = req.body.email;
   const reqUserId = req.body.userId;
 
-  const idTokenObj = tokenFunction.getPureTokenValues(idToken);
-  const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
-  const idTokenPayload = JSON.parse(idTokenObj.payload);
+  if (idToken && accessToken && reqNickname && reqEmail && reqUserId) {
+    const idTokenObj = tokenFunction.getPureTokenValues(idToken);
+    const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
+    const idTokenPayload = JSON.parse(idTokenObj.payload);
 
-  const tokenEmail = idTokenPayload.email;
+    const tokenEmail = idTokenPayload.email;
+    if (tokenEmail !== reqEmail) {
+      res.json(
+        JSON.stringify({ confirm: false, message: "토큰이랑 이메일 안맞아" })
+      );
+    } else {
+      const isUserExists = await checkUserExists(
+        reqUserId,
+        reqNickname,
+        reqEmail
+      );
+      if (isUserExists) {
+        res.json(
+          JSON.stringify({
+            confirm: true,
+            userInfo: {
+              nickname: reqNickname,
+              userId: reqUserId,
+              email: reqEmail,
+            },
+          })
+        );
+      } else {
+        res.json(JSON.stringify({ confirm: false }));
+      }
+    }
+  } else {
+    res.json(JSON.stringify({ confirm: false, message: "필수값 안왔어" }));
+  }
 
   //tokenEmail과 reqEmail이 다르면 confirm false
   //디비 접근해서, tokenEmail기준으로 유저 검색,
   //해당 유저정보랑 req정보랑 다르면, confirm false
   //같으면 confirm true
-  if (tokenEmail !== reqEmail) {
-    res.json(
-      JSON.stringify({ confirm: false, message: "토큰이랑 이메일 안맞아" })
-    );
-  } else {
-    const isUserExists = await checkUserExists(
-      reqUserId,
-      reqNickname,
-      reqEmail
-    );
-    if (isUserExists) {
-      res.json(
-        JSON.stringify({
-          confirm: true,
-          userInfo: {
-            nickname: reqNickname,
-            userId: reqUserId,
-            email: reqEmail,
-          },
-        })
-      );
-    } else {
-      res.json(JSON.stringify({ confirm: false }));
-    }
-  }
 });
 
 //axios테스트
