@@ -58,8 +58,6 @@ const checkEmailExists = async (email) => {
       `SELECT * FROM users WHERE email = '${email}'`
     );
 
-    // console.log(result);
-
     // const emailExists = result.rows[0].email_exists;
 
     // 연결 해제
@@ -87,7 +85,6 @@ const checkNicknameExists = async (nickname) => {
     );
 
     const nicknameExists = result.rows[0].nickname_exists;
-    console.log(nicknameExists);
     // 연결 해제
     client.release();
 
@@ -98,11 +95,76 @@ const checkNicknameExists = async (nickname) => {
   }
 };
 
+const checkUserExists = async (userId, nickname, email) => {
+  try {
+    const client = await pool.connect();
+
+    // PostgreSQL 쿼리문: 주어진 닉네임으로 유저가 존재하는지 확인
+    const result = await client.query(
+      "SELECT EXISTS (SELECT 1 FROM users WHERE user_id = $1 OR nickname = $2 OR email = $3) AS user_exists",
+      [userId, nickname, email]
+    );
+
+    const nicknameExists = result.rows[0].user_exists;
+    // 연결 해제
+    client.release();
+
+    return nicknameExists;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    throw error;
+  }
+};
+
+app.post(checkEnvURL() + "/", async (req, res) => {
+  const idToken = req.body.idToken;
+
+  const accessToken = req.body.accessToken;
+  const reqNickname = req.body.nickname;
+  const reqEmail = req.body.email;
+  const reqUserId = req.body.userId;
+
+  const idTokenObj = tokenFunction.getPureTokenValues(idToken);
+  const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
+  const idTokenPayload = JSON.parse(idTokenObj.payload);
+
+  const tokenEmail = idTokenPayload.email;
+
+  //tokenEmail과 reqEmail이 다르면 confirm false
+  //디비 접근해서, tokenEmail기준으로 유저 검색,
+  //해당 유저정보랑 req정보랑 다르면, confirm false
+  //같으면 confirm true
+  if (tokenEmail !== reqEmail) {
+    res.json(
+      JSON.stringify({ confirm: false, message: "토큰이랑 이메일 안맞아" })
+    );
+  } else {
+    const isUserExists = await checkUserExists(
+      reqUserId,
+      reqNickname,
+      reqEmail
+    );
+    if (isUserExists) {
+      res.json(
+        JSON.stringify({
+          confirm: true,
+          userInfo: {
+            nickname: reqNickname,
+            userId: reqUserId,
+            email: reqEmail,
+          },
+        })
+      );
+    } else {
+      res.json(JSON.stringify({ confirm: false }));
+    }
+  }
+});
+
 //axios테스트
 app.get(checkEnvURL() + "/testget", (req, res, next) => {
   try {
     res.json(JSON.stringify("get 성공이야"));
-    console.log("test get 왔어");
   } catch (error) {
     console.error("에러 발생:", error);
 
@@ -113,8 +175,6 @@ app.get(checkEnvURL() + "/testget", (req, res, next) => {
 
 app.post(checkEnvURL() + "/postest", (req, res) => {
   try {
-    console.log(req.body);
-
     // 예외 발생 시점 예시
     // throw new Error("에러 발생!");
 
@@ -133,15 +193,9 @@ app.post(checkEnvURL() + "/login", async (req, res) => {
     const idToken = req.body.idToken;
     const accessToken = req.body.accessToken;
 
-    console.log(idToken);
-    console.log(accessToken);
-
     const idTokenObj = tokenFunction.getPureTokenValues(idToken);
     const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
-    // console.log(idTokenObj);
-    // console.log(accessTokenObj);
     const idTokenPayload = JSON.parse(idTokenObj.payload);
-    console.log(idTokenPayload);
 
     const userEmail = idTokenPayload.email;
     //얘를 이제 db랑 상호작용
@@ -149,8 +203,6 @@ app.post(checkEnvURL() + "/login", async (req, res) => {
     // 2. 없으면 없는 유저라는 응답과함꼐 이메일 주소 줌.
 
     const result = await checkEmailExists(userEmail);
-
-    console.log(result);
 
     if (result) {
       // 이미 유저가 존재하는 경우
@@ -187,7 +239,6 @@ app.post(checkEnvURL() + "/nickname", async (req, res) => {
 
     const userEmail = idTokenPayload.email;
 
-    console.log(nickname);
     if (await checkNicknameExists(nickname)) {
       // 이미 사용중인 닉네임인 경우
       let answer = {
@@ -219,11 +270,9 @@ app.post(checkEnvURL() + "/newbie", async (req, res) => {
     const accessTokenObj = tokenFunction.getPureTokenValues(accessToken);
 
     const idTokenPayload = JSON.parse(idTokenObj.payload);
-    console.log(idToken);
 
     const userEmail = idTokenPayload.email;
 
-    console.log(req.body);
     const nickname = req.body.signupUserInfo.nickname;
     const birthdate = req.body.signupUserInfo.birthdate;
     //얘를 이제 db랑 상호작용
