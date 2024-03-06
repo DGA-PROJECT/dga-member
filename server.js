@@ -167,7 +167,7 @@ app.post(checkEnvURL() + "/", async (req, res) => {
 //axios테스트
 app.get(checkEnvURL() + "/testget", (req, res, next) => {
   try {
-    res.json(JSON.stringify("get 성공이야"));
+    res.json(JSON.stringify("users get 성공이야"));
   } catch (error) {
     console.error("에러 발생:", error);
 
