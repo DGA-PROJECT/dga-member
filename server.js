@@ -321,6 +321,8 @@ app.post(checkEnvURL() + "/newbie", async (req, res) => {
   }
 });
 
+//
+
 app.get(checkEnvURL() + "/dbtest", async (req, res, next) => {
   try {
     if (await checkNicknameExists("바보온달")) {
